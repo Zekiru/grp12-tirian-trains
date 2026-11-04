@@ -39,14 +39,11 @@ pip install -r requirements.txt
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-5. Use the Secret Key in the .env file (create the .env file in the project folder)
-```bash
-touch .env
-```
-
+5. Create the .env file within the project folder
 ```bash
 # insert inside .env file
 SECRET_KEY='your_generated_secret_key_here'
+DEBUG=True
 ```
 
 6. Run the Development Server
