@@ -39,7 +39,7 @@ pip install -r requirements.txt
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-5. Use the Secret Key in the .env file
+5. Use the Secret Key in the .env file (create the .env file in the project folder)
 ```bash
 touch .env
 ```
