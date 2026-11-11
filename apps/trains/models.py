@@ -10,6 +10,10 @@ CONDITION = [
 
 
 class Train(models.Model):
+    id = models.CharField(
+        max_length = 6,
+        primary_key = True
+    )
     model_series = models.CharField(max_length = 3)
     model_number = models.CharField(max_length = 3)
     max_speed = models.PositiveIntegerField()
@@ -34,22 +38,31 @@ class Train(models.Model):
 
 
 class MaintenanceCrew(models.Model):
+    id = models.CharField(
+        max_length = 6,
+        primary_key = True
+    )
     crew_firstname = models.CharField(max_length = 255)
     crew_lastname = models.CharField(max_length = 255)
 
     def __str__(self):
         first_initial = (self.crew_firstname or "")[:1]
-        return f"{first_initial}. {self.crew_lastname}"
+        return f"{first_initial}. {self.crew_lastname} ({self.pk})"
+
+    class Meta:
+        ordering = ['crew_lastname', 'crew_firstname']
+        verbose_name = 'Maintenance Crewmate'
+        verbose_name_plural = 'Maintenance Crew'
 
 
 class Maintenance(models.Model):
     train = models.ForeignKey(
-        Train, 
+        Train,
         on_delete = models.CASCADE, 
         related_name = 'maintenance_logs'
     )
     crew = models.ForeignKey(
-        MaintenanceCrew, 
+        MaintenanceCrew,
         on_delete = models.PROTECT, 
         related_name = 'maintenance_logs'
     )
@@ -65,7 +78,7 @@ class Maintenance(models.Model):
 
     def __str__(self):
         return (
-            f"Train {self.train} - Log #{self.pk} ({self.maintenance_date})"
+            f"Log #{self.pk} - Train {self.train} ({self.maintenance_date})"
         )
 
     class Meta:
