@@ -10,9 +10,9 @@ CONDITION = [
 
 
 class Train(models.Model):
-    id = models.CharField(
+    train_id = models.CharField(
         max_length = 6,
-        primary_key = True
+        unique = True
     )
     model_series = models.CharField(max_length = 3)
     model_number = models.CharField(max_length = 3)
@@ -28,26 +28,22 @@ class Train(models.Model):
 
     def __str__(self):
         return (
-            f"{self.pk} ({self.model_series}-{self.model_number})"
+            f"{self.train_id} ({self.model_series}-{self.model_number})"
         )
 
     class Meta:
-        ordering = ['id']
+        ordering = ['train_id']
         verbose_name = 'train'
         verbose_name_plural = 'trains'
 
 
 class MaintenanceCrew(models.Model):
-    id = models.CharField(
-        max_length = 6,
-        primary_key = True
-    )
     crew_firstname = models.CharField(max_length = 255)
     crew_lastname = models.CharField(max_length = 255)
 
     def __str__(self):
         first_initial = (self.crew_firstname or "")[:1]
-        return f"{first_initial}. {self.crew_lastname} ({self.pk})"
+        return f"{first_initial}. {self.crew_lastname}"
 
     class Meta:
         ordering = ['crew_lastname', 'crew_firstname']
@@ -58,7 +54,7 @@ class MaintenanceCrew(models.Model):
 class Maintenance(models.Model):
     train = models.ForeignKey(
         Train,
-        on_delete = models.CASCADE, 
+        on_delete = models.CASCADE,
         related_name = 'maintenance_logs'
     )
     crew = models.ForeignKey(
@@ -71,7 +67,8 @@ class Maintenance(models.Model):
         default = 0
     )
     maintenance_date = models.DateField()
-    task = models.TextField(
+    task = models.CharField(max_length = 255)
+    description = models.TextField(
         blank = True,
         default = ""
     )
