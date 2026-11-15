@@ -26,7 +26,7 @@ class Customer(models.Model):
     class Meta:
         ordering = ['customer_lastname', 'customer_firstname']
         verbose_name = 'Customer'
-        verbose_name = 'Customers'
+        verbose_name_plural = 'Customers'
 
 
 class Ticket(models.Model):
@@ -40,8 +40,13 @@ class Ticket(models.Model):
         related_name='tickets'
     )
     purchase_date = models.DateField()
-    total_cost = models.IntegerField()
+    total_cost = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        default=0.00
+    )
     # would be better to derive total_cost but im not gonna worry abt that rn
+    # will try to figure out later as well
 
     def __str__(self):
         return (
@@ -49,6 +54,12 @@ class Ticket(models.Model):
         )
 
     class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=  models.Q(total_cost__gte=0),
+                name='total_cost_gte_0'
+            )
+        ]
         ordering = ['ticket_id']
         verbose_name = 'ticket'
         verbose_name_plural = 'tickets'
@@ -65,7 +76,7 @@ class TicketItinerary(models.Model):
         on_delete=models.PROTECT,
         related_name='ticket_itineraries'
     )
-    schedule = models.IntegerField(
+    trip_order = models.IntegerField(
         default=1
     )
 
@@ -75,6 +86,12 @@ class TicketItinerary(models.Model):
         )
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ticket', 'schedule'],
+                name='unique_ticket_schedule'
+            )
+        ] #just to make sure ticket doesnt have same sched twice
         ordering = ['ticket', 'schedule']
         verbose_name = 'itinerary'
         verbose_name_plural = 'itineraries'
