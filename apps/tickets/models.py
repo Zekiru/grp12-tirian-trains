@@ -1,4 +1,5 @@
 from django.db import models
+from apps.route_schedules.models import TripSchedule
 
 GENDER = [
     (0, 'Male'),
