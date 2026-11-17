@@ -31,3 +31,5 @@ local_settings.py
 db.sqlite3
 media/
 staticfiles/
+**/migrations/*
+!**/migrations/__init__.py
