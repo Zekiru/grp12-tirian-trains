@@ -1,3 +1,84 @@
 from django.db import models
 
-# Create your models here.
+CONDITION = [
+    (0, 'Excellent'),
+    (1, 'Very Good'),
+    (2, 'Good'),
+    (3, 'Fair'),
+    (4, 'Poor'),
+]
+
+
+class Train(models.Model):
+    train_id = models.CharField(
+        max_length = 6,
+        unique = True
+    )
+    model_series = models.CharField(max_length = 3)
+    model_number = models.CharField(max_length = 3)
+    max_speed = models.PositiveIntegerField()
+    seat_count = models.PositiveIntegerField()
+    toilet_count = models.PositiveIntegerField()
+    reclining_seats = models.BooleanField(default = False)
+    folding_tables = models.BooleanField(default = False)
+    disability_access = models.BooleanField(default = False)
+    luggage_storage = models.BooleanField(default = False)
+    vending_machines = models.BooleanField(default = False)
+    food_service = models.BooleanField(default = False)
+
+    def __str__(self):
+        return (
+            f"{self.train_id} ({self.model_series}-{self.model_number})"
+        )
+
+    class Meta:
+        ordering = ['train_id']
+        verbose_name = 'train'
+        verbose_name_plural = 'trains'
+
+
+class MaintenanceCrew(models.Model):
+    crew_firstname = models.CharField(max_length = 255)
+    crew_lastname = models.CharField(max_length = 255)
+
+    def __str__(self):
+        first_initial = (self.crew_firstname or "")[:1]
+        return f"{first_initial}. {self.crew_lastname}"
+
+    class Meta:
+        ordering = ['crew_lastname', 'crew_firstname']
+        verbose_name = 'Maintenance Crewmate'
+        verbose_name_plural = 'Maintenance Crew'
+
+
+class Maintenance(models.Model):
+    train = models.ForeignKey(
+        Train,
+        on_delete = models.CASCADE,
+        related_name = 'maintenance_logs'
+    )
+    crew = models.ForeignKey(
+        MaintenanceCrew,
+        on_delete = models.PROTECT, 
+        related_name = 'maintenance_logs'
+    )
+    condition = models.IntegerField(
+        choices = CONDITION,
+        default = 0
+    )
+    maintenance_date = models.DateField()
+    task = models.CharField(max_length = 255)
+    description = models.TextField(
+        blank = True,
+        default = ""
+    )
+
+    def __str__(self):
+        return (
+            f"Log #{self.pk} - Train {self.train} ({self.maintenance_date})"
+        )
+
+    class Meta:
+        ordering = ['-maintenance_date']
+        verbose_name = 'maintenance'
+        verbose_name_plural = 'maintenance'
