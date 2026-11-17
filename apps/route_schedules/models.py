@@ -157,6 +157,9 @@ class ASeriesLink(models.Model):
     travel_duration = models.DurationField(
         validators=[MinValueValidator(timedelta(0))],
     )
+    bidirectional = models.BooleanField(
+        default=True
+    )
 
     def __str__(self):
         return f"{self.a_origin} to {self.a_destination}"
@@ -249,7 +252,7 @@ class TripSchedule(models.Model):
         verbose_name_plural = "trip schedules"
 
 
-# Auto-Sync Signal for [S/A]-Series
+# Auto-Sync Signals
 
 @receiver([post_save, post_delete], sender=RouteStation)
 def sync_station_series_records(sender, instance, **kwargs):
@@ -265,3 +268,28 @@ def sync_station_series_records(sender, instance, **kwargs):
     if not station.is_s_series:
         SSeries.objects.filter(s_station=station).delete()
 
+@receiver(post_save, sender=ASeriesLink)
+def sync_bidirectional_a_series_links(sender, instance, **kwargs):
+    if instance.bidirectional:
+        ASeriesLink.objects.update_or_create(
+            a_origin=instance.a_destination,
+            a_destination=instance.a_origin,
+            defaults={
+                "travel_cost": instance.travel_cost,
+                "travel_duration": instance.travel_duration,
+                "bidirectional": True,
+            },
+        )
+    else:
+        ASeriesLink.objects.filter(
+            a_origin=instance.a_destination,
+            a_destination=instance.a_origin,
+        ).delete()
+
+@receiver(post_delete, sender=ASeriesLink)
+def delete_bidirectional_a_series_link(sender, instance, **kwargs):
+    if instance.bidirectional:
+        ASeriesLink.objects.filter(
+            a_origin=instance.a_destination,
+            a_destination=instance.a_origin,
+        ).delete()

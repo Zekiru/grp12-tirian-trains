@@ -88,8 +88,8 @@ class ASeriesAdmin(admin.ModelAdmin):
 
 @admin.register(ASeriesLink)
 class ASeriesLinkAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "travel_cost", "travel_duration")
-    list_filter = ("a_origin", "a_destination")
+    list_display = ("__str__", "travel_cost", "travel_duration", "bidirectional")
+    list_filter = ("bidirectional", "a_origin", "a_destination")
     search_fields = (
         "a_origin__a_station__station_name",
         "a_destination__a_station__station_name",
