@@ -1,5 +1,4 @@
-"""Step 3: Seed Route ('S-Series' & 'A-Series'), TrainStation, RouteStation, SSeries, ASeries, ASeriesLink, and TripSchedule."""
-
+# 3/5
 from datetime import date, time, timedelta
 from decimal import Decimal
 
@@ -15,9 +14,12 @@ from apps.route_schedules.models import (
 from apps.trains.models import Train
 
 
-def seed_routes_and_schedules(trains: dict[str, Train]) -> None:
-    """Seed routes, stations, links, and trip schedules."""
-    print("SEED[3/4] Seeding routes, stations, links, and trip schedules...")
+def seed_routes_and_schedules(trains: dict[str, Train]) -> dict[str, TripSchedule]:
+    """
+    Seed routes, stations, links, and trip schedules.
+    Returns a clean key -> TripSchedule lookup dictionary for downstream ticket seeding.
+    """
+    print("SEED[3/5] Seeding routes, stations, links, and trip schedules...")
 
     # 1. Routes (strictly 'S-Series' for Western Woods loop, 'A-Series' for inter-town network)
     routes_data = [
@@ -120,23 +122,24 @@ def seed_routes_and_schedules(trains: dict[str, Train]) -> None:
         )
         link.full_clean()
 
-    # 7. TripSchedules (using legacy S-Series and A-Series train_ids)
+    # 7. TripSchedules (keyed by readable domain keys -> TripSchedule instance)
     schedules_data = [
         # S-Series clockwise loop (Beaver's Dam -> Allies' Enclave -> The Wardrobe -> The Lamp Post -> Beaver's Dam)
-        ("451621", "S-Series", "Beaver's Dam", "Allies' Enclave", date(2026, 11, 16), time(8, 0), time(8, 5), Decimal("2.00")),
-        ("451621", "S-Series", "Allies' Enclave", "The Wardrobe", date(2026, 11, 16), time(8, 10), time(8, 15), Decimal("2.00")),
-        ("428930", "S-Series", "The Wardrobe", "The Lamp Post", date(2026, 11, 16), time(8, 20), time(8, 25), Decimal("2.00")),
-        ("445382", "S-Series", "The Lamp Post", "Beaver's Dam", date(2026, 11, 16), time(8, 30), time(8, 35), Decimal("2.00")),
+        ("s_dam_to_enclave", "451621", "S-Series", "Beaver's Dam", "Allies' Enclave", date(2026, 11, 16), time(8, 0), time(8, 5), Decimal("2.00")),
+        ("s_enclave_to_wardrobe", "451621", "S-Series", "Allies' Enclave", "The Wardrobe", date(2026, 11, 16), time(8, 10), time(8, 15), Decimal("2.00")),
+        ("s_wardrobe_to_lamppost", "428930", "S-Series", "The Wardrobe", "The Lamp Post", date(2026, 11, 16), time(8, 20), time(8, 25), Decimal("2.00")),
+        ("s_lamppost_to_dam", "445382", "S-Series", "The Lamp Post", "Beaver's Dam", date(2026, 11, 16), time(8, 30), time(8, 35), Decimal("2.00")),
         # A-Series inter-town network trips
-        ("402938", "A-Series", "Allies' Enclave", "Mr. Tumms", date(2026, 11, 16), time(9, 0), time(9, 35), Decimal("8.00")),
-        ("429844", "A-Series", "Allies' Enclave", "Dancing Lawn", date(2026, 11, 16), time(10, 0), time(11, 30), Decimal("15.00")),
-        ("429844", "A-Series", "Dancing Lawn", "Anvard", date(2026, 11, 16), time(12, 0), time(13, 10), Decimal("13.50")),
-        ("411827", "A-Series", "Allies' Enclave", "Aslan's Camp", date(2026, 11, 17), time(13, 0), time(14, 45), Decimal("18.00")),
-        ("409382", "A-Series", "Cauldron Pool", "Father Christmas", date(2026, 11, 17), time(15, 0), time(15, 40), Decimal("9.50")),
-        ("409382", "A-Series", "Witch's Camp", "The Stone Table", date(2026, 11, 17), time(16, 15), time(16, 50), Decimal("8.50")),
+        ("a_enclave_to_tumms", "402938", "A-Series", "Allies' Enclave", "Mr. Tumms", date(2026, 11, 16), time(9, 0), time(9, 35), Decimal("8.00")),
+        ("a_enclave_to_lawn", "429844", "A-Series", "Allies' Enclave", "Dancing Lawn", date(2026, 11, 16), time(10, 0), time(11, 30), Decimal("15.00")),
+        ("a_lawn_to_anvard", "429844", "A-Series", "Dancing Lawn", "Anvard", date(2026, 11, 16), time(12, 0), time(13, 10), Decimal("13.50")),
+        ("a_enclave_to_aslan", "411827", "A-Series", "Allies' Enclave", "Aslan's Camp", date(2026, 11, 17), time(13, 0), time(14, 45), Decimal("18.00")),
+        ("a_cauldron_to_christmas", "409382", "A-Series", "Cauldron Pool", "Father Christmas", date(2026, 11, 17), time(15, 0), time(15, 40), Decimal("9.50")),
+        ("a_witch_to_stonetable", "409382", "A-Series", "Witch's Camp", "The Stone Table", date(2026, 11, 17), time(16, 15), time(16, 50), Decimal("8.50")),
     ]
 
-    for train_id, route_name, origin_name, dest_name, trip_date, dep_time, arr_time, cost in schedules_data:
+    trip_schedules: dict[str, TripSchedule] = {}
+    for key, train_id, route_name, origin_name, dest_name, trip_date, dep_time, arr_time, cost in schedules_data:
         schedule, _ = TripSchedule.objects.update_or_create(
             train=trains[train_id],
             route=routes[route_name],
@@ -150,6 +153,7 @@ def seed_routes_and_schedules(trains: dict[str, Train]) -> None:
             },
         )
         schedule.full_clean()
+        trip_schedules[key] = schedule
 
     print(
         f"      OK - {Route.objects.count()} Routes, "
@@ -160,3 +164,4 @@ def seed_routes_and_schedules(trains: dict[str, Train]) -> None:
         f"{ASeriesLink.objects.count()} ASeriesLinks, "
         f"{TripSchedule.objects.count()} TripSchedules."
     )
+    return trip_schedules

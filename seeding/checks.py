@@ -1,5 +1,4 @@
-"""Step 4: Post-seed model property, signal, duration calculation, and DB CheckConstraint checks."""
-
+# 5/5
 from datetime import timedelta
 from decimal import Decimal
 
@@ -11,7 +10,7 @@ from apps.route_schedules.models import ASeries, ASeriesLink, TrainStation, Trip
 
 def run_migration_and_constraint_checks() -> None:
     """Verify model properties, auto-sync signals, trip_duration calculation, and DB CheckConstraints."""
-    print("SEED[4/4] Running migration & database constraint sanity checks...")
+    print("SEED[5/5] Running migration & database constraint sanity checks...")
 
     # 1. Django system check
     call_command("check")

@@ -1,12 +1,11 @@
-"""Step 1: Database connection & migration state verification."""
-
+# 1/5
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 
 
 def verify_migrations() -> None:
     """Ensure all migrations have been applied before seeding."""
-    print("SEED[1/4] Checking database connection and pending migrations...")
+    print("SEED[1/5] Checking database connection and pending migrations...")
     connection.ensure_connection()
     executor = MigrationExecutor(connection)
     targets = executor.loader.graph.leaf_nodes()

@@ -1,5 +1,4 @@
-"""Step 2: Seed Train (legacy 7-train fleet), MaintenanceCrew, and Maintenance records."""
-
+# 2/5
 from datetime import date
 
 from apps.trains.models import Maintenance, MaintenanceCrew, Train
@@ -7,7 +6,7 @@ from apps.trains.models import Maintenance, MaintenanceCrew, Train
 
 def seed_trains_and_maintenance() -> dict[str, Train]:
     """Seed Train, MaintenanceCrew, and Maintenance records."""
-    print("SEED[2/4] Seeding trains and maintenance logs...")
+    print("SEED[2/5] Seeding trains and maintenance logs...")
 
     trains_data = [
         {

@@ -1,97 +1,106 @@
+from decimal import Decimal
 from django.db import models
-# from apps.route_schedules.models import TripSchedule
+from django.db.models import Sum
+from django.utils import timezone
 
-# GENDER = [
-#     (0, 'Male'),
-#     (1, 'Female'),
-# ]
+from apps.route_schedules.models import TripSchedule
 
-
-# class Customer(models.Model):
-#     # no id since maintenance_crew doesn't seem to have an id either but that can be changed
-#     customer_firstname = models.CharField(max_length=255)
-#     customer_lastname = models.CharField(max_length=255)
-#     middle_initial = models.CharField(max_length=1)
-#     birth_date = models.DateField()
-#     gender = models.IntegerField(
-#         choices=GENDER,
-#         default=0
-#     )
-
-#     def __str__(self):
-#         return (
-#             f"{self.customer_firstname} {self.middle_initial}. {self.customer_lastname}"
-#         )
-
-#     class Meta:
-#         ordering = ['customer_lastname', 'customer_firstname']
-#         verbose_name = 'Customer'
-#         verbose_name_plural = 'Customers'
+GENDER = [
+    (0, "Male"),
+    (1, "Female"),
+]
 
 
-# class Ticket(models.Model):
-#     ticket_id = models.CharField(
-#         max_length=8,
-#         unique=True
-#     )
-#     customer = models.ForeignKey(
-#         Customer,
-#         on_delete=models.CASCADE,
-#         related_name='tickets'
-#     )
-#     purchase_date = models.DateField()
-#     total_cost = models.DecimalField(
-#         max_digits=10, 
-#         decimal_places=2,
-#         default=0.00
-#     )
-#     # would be better to derive total_cost but im not gonna worry abt that rn
-#     # will try to figure out later as well
+class Customer(models.Model):
+    customer_firstname = models.CharField(max_length=255)
+    customer_lastname = models.CharField(max_length=255)
+    middle_initial = models.CharField(max_length=1, blank=True, default="")
+    birth_date = models.DateField()
+    gender = models.IntegerField(choices=GENDER, default=0)
 
-#     def __str__(self):
-#         return (
-#             f"{self.ticket_id}"
-#         )
+    def __str__(self):
+        mid = f" {self.middle_initial}." if self.middle_initial else ""
+        return f"{self.customer_firstname}{mid} {self.customer_lastname}"
 
-#     class Meta:
-#         constraints = [
-#             models.CheckConstraint(
-#                 condition=  models.Q(total_cost__gte=0),
-#                 name='total_cost_gte_0'
-#             )
-#         ]
-#         ordering = ['ticket_id']
-#         verbose_name = 'ticket'
-#         verbose_name_plural = 'tickets'
+    class Meta:
+        ordering = ["customer_lastname", "customer_firstname"]
+        verbose_name = "customer"
+        verbose_name_plural = "customers"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["customer_firstname", "middle_initial", "customer_lastname", "birth_date"],
+                name="unique_customer_identity",
+            )
+        ]
 
 
-# class TicketItinerary(models.Model):
-#     ticket = models.ForeignKey(
-#         Ticket,
-#         on_delete=models.CASCADE,
-#         related_name='ticket_itineraries'
-#     )
-#     schedule = models.ForeignKey(
-#         TripSchedule,  # idk if this will work since it's not defined in this view
-#         on_delete=models.PROTECT,
-#         related_name='ticket_itineraries'
-#     )
-#     trip_order = models.IntegerField(
-#         default=1
-#     )
+class Ticket(models.Model):
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name="tickets",
+    )
+    purchase_date = models.DateField(default=timezone.localdate)
+    total_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
 
-#     def __str__(self):
-#         return (
-#             f"Ticket #{self.ticket} - Schedule #{self.schedule}"
-#         )
+    def recalculate_total_cost(self):
+        total = (
+            self.ticket_itineraries.aggregate(total=Sum("schedule__trip_cost"))["total"]
+            or Decimal("0.00")
+        )
+        Ticket.objects.filter(pk=self.pk).update(total_cost=total)
+        self.total_cost = total
 
-#     class Meta:
-#         constraints = [
-#             models.UniqueConstraint(
-#                 fields=['ticket', 'schedule'],
-#                 name='unique_ticket_schedule'
-#             )
-#         ] #just to make sure ticket doesnt have same sched twice
-#         ordering = ['ticket', 'schedule']
-#         verbose_name = 'itinerary'
-#         verbose_name_plural = 'itineraries'
+    def __str__(self):
+        return f"Ticket #{self.pk}"
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(total_cost__gte=0),
+                name="total_cost_gte_0",
+            )
+        ]
+        ordering = ["id"]
+        verbose_name = "ticket"
+        verbose_name_plural = "tickets"
+
+
+class TicketItinerary(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name="ticket_itineraries",
+    )
+    schedule = models.ForeignKey(
+        TripSchedule,
+        on_delete=models.PROTECT,
+        related_name="ticket_itineraries",
+    )
+    trip_order = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.ticket} (Leg {self.trip_order}) - {self.schedule}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["ticket", "schedule"],
+                name="unique_ticket_schedule",
+            ),
+            models.UniqueConstraint(
+                fields=["ticket", "trip_order"],
+                name="unique_ticket_trip_order",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(trip_order__gte=1),
+                name="trip_order_gte_1",
+            ),
+        ]
+        ordering = ["ticket", "trip_order"]
+        verbose_name = "ticket itinerary"
+        verbose_name_plural = "ticket itineraries"
