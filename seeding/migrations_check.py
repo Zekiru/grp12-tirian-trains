@@ -6,7 +6,7 @@ from django.db.migrations.executor import MigrationExecutor
 
 def verify_migrations() -> None:
     """Ensure all migrations have been applied before seeding."""
-    print("[1/4] Checking database connection and pending migrations...")
+    print("SEED[1/4] Checking database connection and pending migrations...")
     connection.ensure_connection()
     executor = MigrationExecutor(connection)
     targets = executor.loader.graph.leaf_nodes()

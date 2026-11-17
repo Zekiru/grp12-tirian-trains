@@ -2,12 +2,12 @@
 
 from pathlib import Path
 from django.conf import settings
-from resetting.env_loader import BASE_DIR
+from rebuilding.env_loader import BASE_DIR
 
 
 def delete_sqlite_database() -> None:
     """Delete the SQLite database file configured in Django settings (or db.sqlite3 fallback)."""
-    print("[1/4] Deleting SQLite database file...")
+    print("REBUILD[1/4] Deleting SQLite database file...")
     db_path: Path | None = None
 
     default_db = settings.DATABASES.get("default", {})

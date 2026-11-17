@@ -268,23 +268,35 @@ def sync_station_series_records(sender, instance, **kwargs):
     if not station.is_s_series:
         SSeries.objects.filter(s_station=station).delete()
 
+
 @receiver(post_save, sender=ASeriesLink)
 def sync_bidirectional_a_series_links(sender, instance, **kwargs):
     if instance.bidirectional:
-        ASeriesLink.objects.update_or_create(
+        # Stop recursion if the reverse link already exists with identical values
+        already_synced = ASeriesLink.objects.filter(
             a_origin=instance.a_destination,
             a_destination=instance.a_origin,
-            defaults={
-                "travel_cost": instance.travel_cost,
-                "travel_duration": instance.travel_duration,
-                "bidirectional": True,
-            },
-        )
+            travel_cost=instance.travel_cost,
+            travel_duration=instance.travel_duration,
+            bidirectional=True,
+        ).exists()
+
+        if not already_synced:
+            ASeriesLink.objects.update_or_create(
+                a_origin=instance.a_destination,
+                a_destination=instance.a_origin,
+                defaults={
+                    "travel_cost": instance.travel_cost,
+                    "travel_duration": instance.travel_duration,
+                    "bidirectional": True,
+                },
+            )
     else:
         ASeriesLink.objects.filter(
             a_origin=instance.a_destination,
             a_destination=instance.a_origin,
         ).delete()
+
 
 @receiver(post_delete, sender=ASeriesLink)
 def delete_bidirectional_a_series_link(sender, instance, **kwargs):

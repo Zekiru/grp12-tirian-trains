@@ -14,7 +14,7 @@ from apps.trains.models import Maintenance, MaintenanceCrew, Train
 
 def reset_data() -> None:
     """Delete data in reverse foreign-key dependency order."""
-    print("[Reset] Clearing existing records...")
+    print("[RESET] Clearing existing records...")
     TripSchedule.objects.all().delete()
     ASeriesLink.objects.all().delete()
     ASeries.objects.all().delete()

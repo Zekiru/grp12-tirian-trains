@@ -11,7 +11,7 @@ from apps.route_schedules.models import ASeries, ASeriesLink, TrainStation, Trip
 
 def run_migration_and_constraint_checks() -> None:
     """Verify model properties, auto-sync signals, trip_duration calculation, and DB CheckConstraints."""
-    print("[4/4] Running migration & database constraint sanity checks...")
+    print("SEED[4/4] Running migration & database constraint sanity checks...")
 
     # 1. Django system check
     call_command("check")

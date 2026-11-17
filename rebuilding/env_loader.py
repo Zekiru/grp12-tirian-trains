@@ -9,13 +9,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def load_env_file(env_path: Path | None = None) -> None:
-    """Parse a root .env file into os.environ without external dependencies."""
+    """Parse a root .env file into os.environ (handles UTF-8, UTF-8-SIG, and PowerShell UTF-16)."""
     target = env_path or (BASE_DIR / ".env")
     if not target.exists():
         print(f"[Env] Warning: {target} not found. Relying on existing environment variables.")
         return
 
-    for raw_line in target.read_text(encoding="utf-8").splitlines():
+    raw_bytes = target.read_bytes()
+    if raw_bytes.startswith((b"\xff\xfe", b"\xfe\xff")):
+        content = raw_bytes.decode("utf-16")
+    else:
+        content = raw_bytes.decode("utf-8-sig")
+
+    for raw_line in content.splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

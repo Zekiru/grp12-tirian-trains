@@ -7,7 +7,7 @@ from apps.trains.models import Maintenance, MaintenanceCrew, Train
 
 def seed_trains_and_maintenance() -> dict[str, Train]:
     """Seed Train, MaintenanceCrew, and Maintenance records."""
-    print("[2/4] Seeding trains and maintenance logs...")
+    print("SEED[2/4] Seeding trains and maintenance logs...")
 
     trains_data = [
         {

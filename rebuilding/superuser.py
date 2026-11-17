@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 def create_superuser_from_env() -> None:
     """Create a Django superuser using credentials from .env."""
-    print("[4/4] Creating superuser from .env...")
+    print("REBUILD[4/4] Creating superuser from .env...")
     username = (
         os.environ.get("DJANGO_SUPERUSER_USERNAME")
         or os.environ.get("SUPERUSER_USERNAME")

@@ -1,12 +1,12 @@
 """Step 2: Remove system-generated migration files across app directories."""
 
 import shutil
-from resetting.env_loader import BASE_DIR
+from rebuilding.env_loader import BASE_DIR
 
 
 def delete_app_migrations() -> None:
     """Delete all generated migration files (keeping __init__.py) in apps/ and app/ folders."""
-    print("[2/4] Deleting system-generated migrations in app directories...")
+    print("REBUILD[2/4] Deleting system-generated migrations in app directories...")
     deleted_count = 0
 
     for folder_name in ("apps", "app"):

@@ -17,7 +17,7 @@ from apps.trains.models import Train
 
 def seed_routes_and_schedules(trains: dict[str, Train]) -> None:
     """Seed routes, stations, links, and trip schedules."""
-    print("[3/4] Seeding routes, stations, links, and trip schedules...")
+    print("SEED[3/4] Seeding routes, stations, links, and trip schedules...")
 
     # 1. Routes (strictly 'S-Series' for Western Woods loop, 'A-Series' for inter-town network)
     routes_data = [
